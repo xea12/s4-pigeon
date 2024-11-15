@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Lista klientów{% endblock %}
+
+{% block body %}
+    <h1>Lista klientów</h1>
+    <form action="{{ path('customer_list') }}" method="GET" class="mb-3">
+        <div class="input-group">
+            <input type="text" name="search" class="form-control" placeholder="Wyszukaj po emailu" value="{{ search }}">
+            <button type="submit" class="btn btn-primary">Szukaj</button>
+            {% if search %}
+                <a href="{{ path('customer_list') }}" class="btn btn-secondary">Wyczyść</a>
+            {% endif %}
+        </div>
+    </form>
+
+    <table class="table">
+        {# ... nagłówki tabeli ... #}
+        <th>ID</th>
+        <th>Imię</th>
+        <th>Email</th>
+        <th>Akcja</th>
+        <tbody>
+        {% for customer in customers %}
+            <tr>
+                <td>{{ customer.id }}</td>
+                <td>{{ customer.imie }}</td>
+                <td>{{ customer.email }}</td>
+                <td>
+                    <a href="{{ path('customer_details', {'id': customer.id}) }}" class="btn btn-sm btn-info">Szczegóły</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5">Brak wyników</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% if pagination and not search %}
+        <div class="navigation">
+            {{ knp_pagination_render(pagination) }}
+        </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,8 @@
+controllers:
+    resource: ../src/Controller/
+    type: attribute
+
+track_email_open:
+    path: /track/email/{id}
+    controller: App\Controller\TrackingController::trackEmailOpen
+    methods: [GET]

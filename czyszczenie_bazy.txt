@@ -1,0 +1,53 @@
+Ten błąd występuje, gdy nie ma żadnych plików migracji w systemie. Oto kroki, aby rozwiązać problem:
+Najpierw wyczyść wszystko:
+bash
+# Usuń istniejące migracje
+docker-compose exec web rm -f migrations/Version*.php
+
+# Wyczyść tabelę migracji
+docker-compose exec web php bin/console doctrine:migrations:version --delete --all --no-interaction
+
+# Usuń bazę danych
+docker-compose exec web php bin/console doctrine:database:drop --force
+
+# Stwórz nową bazę
+docker-compose exec web php bin/console doctrine:database:create
+
+Wygeneruj nową migrację na podstawie encji:
+bash
+docker-compose exec web php bin/console make:migration
+
+Sprawdź czy migracja została wygenerowana:
+bash
+# Sprawdź status migracji
+docker-compose exec web php bin/console doctrine:migrations:status
+
+# Sprawdź listę migracji
+docker-compose exec web php bin/console doctrine:migrations:list
+
+Jeśli migracja nie została wygenerowana, możesz utworzyć schemat bezpośrednio:
+bash
+# Najpierw sprawdź SQL
+docker-compose exec web php bin/console doctrine:schema:update --dump-sql
+
+# Następnie wykonaj aktualizację
+docker-compose exec web php bin/console doctrine:schema:update --force
+
+Alternatywnie, możesz wygenerować migrację ręcznie:
+bash
+docker-compose exec web php bin/console doctrine:migrations:diff
+
+Po wygenerowaniu migracji, wykonaj ją:
+bash
+docker-compose exec web php bin/console doctrine:migrations:migrate
+
+Jeśli nadal występują problemy, spróbuj:
+bash
+# Wyczyść cache
+docker-compose exec web php bin/console cache:clear
+
+# Sprawdź mapowanie encji
+docker-compose exec web php bin/console doctrine:mapping:info
+
+# Sprawdź walidację schematu
+docker-compose exec web php bin/console doctrine:schema:validate

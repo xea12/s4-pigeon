@@ -1,0 +1,27 @@
+{# templates/campaign/stats.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Statystyki otwarć kampanii{% endblock %}
+
+{% block body %}
+    <h1>Statystyki otwarć dla kampanii: {{ campaign.nazwa }}</h1>
+
+    <p>Liczba otwarć: {{ opens|length }}</p>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Email</th>
+            <th>Data otwarcia</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for open in opens %}
+            <tr>
+                <td>{{ open.campaignSent.customer.email }}</td>
+                <td>{{ open.openedAt|date('Y-m-d H:i:s') }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

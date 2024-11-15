@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Lista kampanii{% endblock %}
+
+
+{% block body %}
+    <div class="container mt-4">
+        <h1 class="mb-4">Lista kampanii</h1>
+
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        {% if campaigns is empty %}
+            <p class="alert alert-info">Brak kampanii do wyświetlenia.</p>
+        {% else %}
+            <table class="table table-striped table-hover campaign-table">
+                <thead class="thead-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nazwa</th>
+                    <th>Temat</th>
+                    <th>Nazwa nadawcy</th>
+                    <th>Email nadawcy</th>
+                    <th>Data utworzenia</th>
+                    <th>Data wysyłki</th>
+                    <th>Status</th>
+                    <th>Segment</th>
+                    <th>Akcje</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for campaign in campaigns %}
+                    <tr>
+                        <td>{{ campaign.id }}</td>
+                        <td>{{ campaign.nazwa }}</td>
+                        <td>{{ campaign.temat }}</td>
+                        <td>{{ campaign.nazwaNadawcy }}</td>
+                        <td>{{ campaign.emailNadawcy }}</td>
+                        <td>{{ campaign.dataUtworzenia|date('Y-m-d H:i:s') }}</td>
+                        <td>{{ campaign.dataWysylki ? campaign.dataWysylki|date('Y-m-d H:i:s') : 'Nie ustawiono' }}</td>
+                        <td>
+                            <span class="badge bg-{{ campaign.status == 'Wysłana' ? 'success' : (campaign.status == 'Zaplanowana' ? 'primary' : 'secondary') }}">
+                                {{ campaign.status }}
+                            </span>
+                        </td>
+                        <td>{{ campaign.segment }}</td>
+                        <td class="text-nowrap">
+                            <a href="{{ path('campaign_edit', {'id': campaign.id}) }}" class="btn btn-sm btn-link" title="Edytuj">
+                                <i class="fas fa-edit text-primary"></i>
+                            </a>
+                            <form method="post" action="{{ path('campaign_delete', {'id': campaign.id}) }}" style="display: inline-block" onsubmit="return confirm('Czy na pewno chcesz usunąć tę kampanię?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ campaign.id) }}">
+                                <button type="submit" class="btn btn-sm btn-link" title="Usuń">
+                                    <i class="fas fa-trash-alt text-danger"></i>
+                                </button>
+                            </form>
+                            <a href="{{ path('campaign_stats', {'id': campaign.id}) }}" class="btn btn-info">Statystyki otwarć</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        <a href="{{ path('campaign_new') }}" class="btn btn-success">Utwórz nową kampanię</a>
+    </div>
+{% endblock %}

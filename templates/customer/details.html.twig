@@ -1,0 +1,155 @@
+{# details.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Szczegóły klienta{% endblock %}
+
+{% block container %}
+    <div class="container-fluid">
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+        {% endfor %}
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Informacje o kliencie</h2>
+                        <div id="customer-info">
+                            <p><strong>Imię:</strong> {{ customer.imie }}</p>
+                            <p><strong>Email:</strong> {{ customer.email }}</p>
+                            <p><strong>Zakup:</strong> {{ customer.zakup }}</p>
+                            <p><strong>Produkt id:</strong> {{ customer.productId }}</p>
+                            <p><strong>Produkt:</strong> {{ customer.productNazwa }}</p>
+                            <p><strong>Cena:</strong> {{ customer.productCena }}</p>
+                            <p><strong>Cena low:</strong> {{ customer.productCenalow }}</p>
+                            <p><strong>Typ produktu:</strong> {{ customer.ProductTyp }}</p>
+                            <p><strong>Rabat:</strong> {{ customer.rabat }} %</p>
+                            <p><strong>Discount:</strong> {{ customer.Discount }}</p>
+                            <p><strong>Ostatni zakup:</strong> {{ customer.CustomersDaysFromOrder }} dni temu</p>
+                            <p><strong>Ilość zakupów:</strong> {{ customer.CustomersOrdersCount }}</p>
+                            <p><strong>Customers Balance:</strong> {{ customer.CustomersBalance }}</p>
+                            <p><strong>Customers Firma:</strong> {{ customer.CustomersFirma }}</p>
+                            <p><strong>Customers Value Class:</strong> {{ customer.CustomersValueClass }}</p>
+                            <p><strong>Customers Time Class:</strong> {{ customer.CustomersTimeClass }}</p>
+                            <p><strong>Customers Firma:</strong> {{ customer.CustomersFirma }}</p>
+                            <p><strong>Id drukarki:</strong> {{ customer.PrinterId }}</p>
+                            <p><strong>Nazwa drukarki:</strong> {{ customer.PrinterName }}</p>
+                            <p><strong>Miasto:</strong> {{ customer.city }}</p>
+                            <p><strong>Ostatnio widziany:</strong> {{ customer.LastReview }}</p>
+                            <p><strong>Krótka nazwa:</strong> {{ customer.NazwaShort }}</p>
+                            <p><strong>Producent:</strong> {{ customer.producent }}</p>
+                            <p><strong>Technologia:</strong> {{ customer.technologia }}</p>
+                            <p><strong>Lokalny:</strong> {{ customer.lokalny }}</p>
+                            <p><strong>B2bB2c:</strong> {{ customer.B2bB2c }}</p>
+                            <p><strong>Product Rodzaj Nazwa:</strong> {{ customer.ProductRodzajNazwa }}</p>
+                            <p><strong>Product Typ Nazwa:</strong> {{ customer.ProductTypNazwa }}</p>
+                            <p><strong>Odroczony:</strong> {{ customer.odroczony }}</p>
+                            <p><strong>Publiczny:</strong> {{ customer.publiczny }}</p>
+                            <p><strong>Przedszkole:</strong> {{ customer.przedszkole }}</p>
+                            <p><strong>Segment Product Type:</strong> {{ customer.SegmentProductType }}</p>
+                            <p><strong>Segment Otwierane:</strong> {{ customer.SegmentOtwierane }}</p>
+                            <p><strong>Segment firma:</strong> {{ customer.SegmentFirma }}</p>
+                            <p><strong>Segment czas:</strong> {{ customer.SegmentCzas }}</p>
+                            <p><strong>Test AB:</strong> {{ customer.ABTest }}</p>
+                            <p><strong>Data dodania:</strong> {{ customer.AddDate|date('Y-m-d') }}</p>
+                            <p><strong>Segment:</strong> {{ customer.segment }}</p>
+                            <!-- Dodaj więcej szczegółów klienta według potrzeb -->
+                        </div>
+                        <div id="customer-edit" style="display: none;">
+                            {{ form_start(form) }}
+                            <div class="row">
+                                <div class="col-md-8">
+                                {{ form_widget(form) }}
+                                </div>
+                            </div><br>
+                            <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+                            <button type="button" class="btn btn-secondary" onclick="toggleEdit()">Anuluj</button>
+                            {{ form_end(form) }}
+                        </div>
+                        <button id="edit-button" class="btn btn-primary" onclick="toggleEdit()">Edytuj dane klienta</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title">Wysłane kampanie</h2>
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th>Nazwa kampanii</th>
+                                <th>Data wysłania</th>
+                                <th>Status</th>
+                                <th>Otwarte</th>
+                                <th>Data otwarcia</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for campaignSent in campaignsSent %}
+                                {% set lastOpen = null %}
+                                {% for open in campaignSent.campaignOpens %}
+                                    {% if lastOpen is null or open.openedAt > lastOpen.openedAt %}
+                                        {% set lastOpen = open %}
+                                    {% endif %}
+                                {% endfor %}
+
+                                <tr>
+                                    <td>{{ campaignSent.campaign.nazwa }}</td>
+                                    <td>{{ campaignSent.sentAt|date('Y-m-d H:i:s') }}</td>
+                                    <td>{{ campaignSent.status }}</td>
+                                    <td>
+                                        {% if lastOpen %}
+                                            <span class="badge bg-success">Tak</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Nie</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if lastOpen %}
+                                            {{ lastOpen.openedAt|date('Y-m-d H:i:s') }}
+                                            <br>
+                                            <small class="text-muted">
+                                                IP: {{ lastOpen.ipAddress }}<br>
+                                                UA: {{ lastOpen.userAgent|length > 50 ? lastOpen.userAgent|slice(0, 50) ~ '...' : lastOpen.userAgent }}
+                                            </small>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="5">Brak wysłanych kampanii</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function toggleEdit() {
+            var infoDiv = document.getElementById('customer-info');
+            var editDiv = document.getElementById('customer-edit');
+            var editButton = document.getElementById('edit-button');
+
+            if (infoDiv.style.display !== 'none') {
+                infoDiv.style.display = 'none';
+                editDiv.style.display = 'block';
+                editButton.style.display = 'none';
+            } else {
+                infoDiv.style.display = 'block';
+                editDiv.style.display = 'none';
+                editButton.style.display = 'inline-block';
+            }
+        }
+    </script>
+{% endblock %}

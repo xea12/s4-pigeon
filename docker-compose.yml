@@ -1,0 +1,59 @@
+version: "3"
+
+services:
+  web:
+    build: .
+    ports:
+      - "83:80"
+      - "4443:443"
+    volumes:
+      - .:/var/www
+      - ./public/uploads:/var/www/public/uploads
+      - /home/web/devel01/cert:/etc/ssl/certs
+    depends_on:
+      - db
+      - mailer
+    environment:
+      - APACHE_DOCUMENT_ROOT=/var/www/public
+    networks:
+      - app-network
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - app-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8083:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: ${DB_ROOT_PASSWORD}
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  mailer:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - app-network
+
+volumes:
+  db_data:
+
+networks:
+  app-network:
+    driver: bridge

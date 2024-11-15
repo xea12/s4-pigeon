@@ -1,0 +1,70 @@
+{# templates/campaign/upload_template.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Edytuj szablon HTML{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .preview-frame {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ccc;
+            margin-top: 20px;
+        }
+        .html-editor {
+            width: 100%;
+            min-height: 600px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1>Edytuj szablon HTML dla kampanii<br> "{{ campaign.nazwa }}"</h1>
+
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        {{ form_start(form) }}
+        <div class="row">
+            <div class="col-12">
+                {{ form_row(form.htmlContent, {'attr': {'class': 'html-editor'}}) }}
+                <button type="submit" class="btn btn-primary mt-2">Zapisz zmiany</button>
+                <a href="{{ path('campaign_test_email', {'id': campaign.id}) }}" class="btn btn-primary" style="margin-top: 9px">Wyślij testowy e-mail</a>
+                <a href="{{ path('campaign_summary', {'id': campaign.id}) }}" class="btn btn-primary" style="margin-top: 9px">Podsumowanie</a>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-12">
+                <h3>Podgląd</h3>
+                <iframe id="preview-frame" class="preview-frame"></iframe>
+            </div>
+        </div>
+        {{ form_end(form) }}
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const htmlEditor = document.querySelector('.html-editor');
+            const previewFrame = document.getElementById('preview-frame');
+
+            function updatePreview() {
+                const htmlContent = htmlEditor.value;
+                const previewDocument = previewFrame.contentDocument;
+                previewDocument.open();
+                previewDocument.write(htmlContent);
+                previewDocument.close();
+            }
+
+            htmlEditor.addEventListener('input', updatePreview);
+            updatePreview(); // Initial preview
+        });
+    </script>
+{% endblock %}

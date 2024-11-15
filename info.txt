@@ -1,0 +1,89 @@
+bezpośrednio w kontenerze
+//logowanie do kontenera
+docker-compose exec web bash
+
+r
+
+// czyszczenie pamięci
+php bin/console cache:clear
+docker-compose exec web php bin/console cache:clear
+//zrobienie migracji
+php bin/console make:migration
+
+//backup danych w bazie
+docker-compose exec db mysqldump -u root -p symfony > backup.sql
+
+//wgranie backupu
+docker-compose exec -T db mysql -u root -p'powodzenia12' symfony < backup.sql
+
+//wykonanie migracji
+docker-compose exec web php bin/console make:migration
+docker-compose exec web php bin/console doctrine:migrations:migrate
+
+
+//status migracji
+docker-compose exec web php bin/console doctrine:migrations:status
+
+//wykonanie tylko wybranaj migracji
+php bin/console doctrine:migrations:execute --up 'DoctrineMigrations\Version20241012131145'
+
+//sprawdzenie statusu migracji
+php bin/console doctrine:migrations:status
+
+//dodanie wykonanych migracji do istniejących już tabel
+php bin/console doctrine:migrations:version --add --all
+
+
+//dodanie usera do bazy
+php bin/console doctrine:query:sql "INSERT INTO user (email, roles, password) VALUES ('lukasz@drtusz.pl', '[\"ROLE_ADMIN\"]', '$(php -r "echo password_hash('wiesio0', PASSWORD_BCRYPT);")')"
+
+//Cofnąć ostatnią migrację:
+docker-compose exec web php bin/console doctrine:migrations:migrate prev
+
+//Resetowanie całej bazy danych:
+//Jeśli to środowisko developerskie i możesz zresetować całą bazę danych, możesz to zrobić za pomocą:
+
+php bin/console doctrine:database:drop --force
+php bin/console doctrine:database:create
+php bin/console doctrine:migrations:migrate
+
+
+oznacz wszystkie migracje jako wykonane
+php bin/console doctrine:migrations:version --add --all
+
+//wykonać migrację lub zaktualizować schemat:
+php bin/console doctrine:schema:update --force
+
+//Usuń wpisy z tabeli doctrine_migration_versions:
+php bin/console doctrine:query:sql "DELETE FROM doctrine_migration_versions"
+
+//usunięcie wszystkich migracji z kontenera
+docker-compose exec web rm -f migrations/Version*.php
+
+
+
+zainstalowane rozszezenia do symfony :
+
+ --composer require symfony/mailer
+ --composer require symfony/orm-pack
+
+
+
+ //przestawienie na async wysyłanie emaila
+
+ docker-compose exec web php bin/console messenger:consume async
+
+
+// logi kontenera
+
+docker-compose exec web tail -f var/log/dev.log
+
+
+//czyszczenie pamięci
+
+docker-compose exec web php bin/console cache:clear
+
+
+
+//wgrywanie nowej bazy
+docker exec -i pigeon_symfony_docker-db-1 mysql -uroot -ppowodzenia12 symfony < symfony.sql

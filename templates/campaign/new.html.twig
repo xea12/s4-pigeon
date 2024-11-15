@@ -1,0 +1,125 @@
+{# templates/campaign/new.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    Utwórz nową kampanię
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1 class="mb-4">Utwórz nową kampanię</h1>
+
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+
+        <div class="mb-3">
+            {{ form_label(form.nazwa, 'Nazwa kampanii', {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(form.nazwa, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_label(form.temat, 'Temat', {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(form.temat, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_label(form.nazwa_nadawcy, 'Nazwa nadawcy', {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(form.nazwa_nadawcy, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_label(form.email_nadawcy, 'Email nadawcy', {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(form.email_nadawcy, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_label(form.data_wysylki, 'Data wysyłki', {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(form.data_wysylki) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_label(form.status, 'Status', {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(form.status, {'attr': {'class': 'form-select'}}) }}
+        </div>
+
+        <h3 class="mt-4 mb-3">Wybierz segment klientów</h3>
+
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                {{ form_label(form.segment_product_type, 'Typ produktu', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.segment_product_type, {'attr': {'class': 'form-select'}}) }}
+            </div>
+            <div class="col-md-3 mb-3">
+                {{ form_label(form.segment_otwierane, 'Częstotliwość otwierania', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.segment_otwierane, {'attr': {'class': 'form-select'}}) }}
+            </div>
+            <div class="col-md-3 mb-3">
+                {{ form_label(form.segment_firma, 'Typ firmy', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.segment_firma, {'attr': {'class': 'form-select'}}) }}
+            </div>
+            <div class="col-md-3 mb-3">
+                {{ form_label(form.segment_czas, 'Czas współpracy', {'label_attr': {'class': 'form-label'}}) }}
+                {{ form_widget(form.segment_czas, {'attr': {'class': 'form-select'}}) }}
+            </div>
+        </div>
+
+        <div id="selectedSegment" class="mb-3">
+            <strong>Wybrany segment:</strong> <span id="segmentValue"></span>
+        </div>
+
+        <div id="customerCount" class="mb-3">
+            <strong>Liczba klientów w segmencie:</strong> <span id="countValue">0</span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Utwórz kampanię</button>
+        {% if campaign is defined %}
+            <a href="{{ path('campaign_upload_template', {'id': campaign.id}) }}" class="btn btn-sm btn-info">Wgraj szablon HTML</a>
+        {% endif %}
+
+        {{ form_end(form) }}
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var datepicker = document.querySelector('.js-datepicker');
+            flatpickr(".js-datepicker", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                time_24hr: true
+            });
+
+            function updateSegment() {
+                var productType = document.getElementById('campaign_segment_product_type').value;
+                var otwierane = document.getElementById('campaign_segment_otwierane').value;
+                var firma = document.getElementById('campaign_segment_firma').value;
+                var czas = document.getElementById('campaign_segment_czas').value;
+
+                var segment = productType + '-' + otwierane + '-' + firma + '-' + czas;
+                document.getElementById('segmentValue').textContent = segment;
+
+                // Wywołaj AJAX, aby pobrać liczbę klientów
+                fetch('{{ path('get_customer_count') }}?segment=' + encodeURIComponent(segment))
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('countValue').textContent = data.count;
+                    });
+            }
+
+            document.getElementById('campaign_segment_product_type').addEventListener('change', updateSegment);
+            document.getElementById('campaign_segment_otwierane').addEventListener('change', updateSegment);
+            document.getElementById('campaign_segment_firma').addEventListener('change', updateSegment);
+            document.getElementById('campaign_segment_czas').addEventListener('change', updateSegment);
+
+            // Inicjalizacja segmentu
+            updateSegment();
+        });
+    </script>
+{% endblock %}

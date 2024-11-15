@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="8b32c6d8-d325-4256-890f-8a6461c46f3c" name="s4-pigeon">
+        <fileTransfer rootFolder="/home/web/devel01/pigeon_symfony_docker" accessType="SFTP" host="s4.mbeavis.bialystok.pl" port="55" sshConfigId="b0becc1b-5823-41fe-9076-e4ff6550eea6" sshConfig="devel01@s4.mbeavis.bialystok.pl:55 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

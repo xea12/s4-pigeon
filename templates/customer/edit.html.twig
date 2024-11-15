@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edycja klienta{% endblock %}
+
+{% block body %}
+    <h1>Edycja klienta</h1>
+
+    {{ form_start(form) }}
+    {{ form_widget(form) }}
+    <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+    {{ form_end(form) }}
+
+    <a href="{{ path('customer_list') }}" class="btn btn-secondary">Powrót do listy</a>
+{% endblock %}

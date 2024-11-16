@@ -21,6 +21,7 @@
 
 {% block body %}
     <div class="container mt-4">
+        {% include 'campaign/_steps.html.twig' with {'currentStep': 2, 'campaign': campaign} %}
         <h1>Edytuj szablon HTML dla kampanii<br> "{{ campaign.nazwa }}"</h1>
 
         {% for message in app.flashes('success') %}

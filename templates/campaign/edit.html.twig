@@ -4,6 +4,7 @@
 
 {% block body %}
     <div class="container mt-4">
+        {% include 'campaign/_steps.html.twig' with {'currentStep': 1, 'campaign': campaign} %}
         <h1 class="mb-4">Edytuj kampanię</h1>
 
         {% for message in app.flashes('success') %}

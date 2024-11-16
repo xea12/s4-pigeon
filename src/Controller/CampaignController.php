@@ -210,6 +210,13 @@ class CampaignController extends AbstractController
             throw $this->createNotFoundException('Nie znaleziono kampanii o id ' . $id);
         }
 
+        // Sprawdź czy można przejść do tego kroku
+        if (empty($campaign->getHtmlTemplate())) {
+            $this->addFlash('warning', 'Najpierw dodaj szablon HTML kampanii.');
+            return $this->redirectToRoute('campaign_upload_template', ['id' => $id]);
+        }
+
+
         $form = $this->createFormBuilder($campaign)
             ->add('data_wysylki', DateTimeType::class, [
                 'widget' => 'single_text',
@@ -386,6 +393,13 @@ class CampaignController extends AbstractController
         if (!$campaign) {
             throw $this->createNotFoundException('Nie znaleziono kampanii o id ' . $id);
         }
+
+        // Sprawdź czy można przejść do tego kroku
+        if (empty($campaign->getSegment())) {
+            $this->addFlash('warning', 'Najpierw uzupełnij podstawowe informacje kampanii.');
+            return $this->redirectToRoute('campaign_edit', ['id' => $id]);
+        }
+
         if ($this->isCsrfTokenValid('delete' . $campaign->getId(), $request->request->get('_token'))) {
             $entityManager->remove($campaign);
             $entityManager->flush();

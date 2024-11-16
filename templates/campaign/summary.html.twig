@@ -4,6 +4,7 @@
 
 {% block body %}
     <div class="container mt-4">
+        {% include 'campaign/_steps.html.twig' with {'currentStep': 4, 'campaign': campaign} %}
         <h1 class="mb-4">Podsumowanie kampanii:<br> {{ campaign.nazwa }}</h1>
 
         <div class="row">

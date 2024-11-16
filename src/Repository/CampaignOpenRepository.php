@@ -18,13 +18,13 @@ class CampaignOpenRepository extends ServiceEntityRepository
     public function getOpenStatistics(Campaign $campaign): array
     {
         return $this->createQueryBuilder('co')
-            ->select('IDENTITY(co.campaignSent) as campaignSentId',
-                'MIN(co.openedAt) as firstOpen',
-                'MAX(co.openedAt) as lastOpen',
-                'COUNT(co) as openCount')
+            ->select('cs.customer as customer')
+            ->addSelect('MIN(co.openedAt) as firstOpen')
+            ->addSelect('MAX(co.openedAt) as lastOpen')
+            ->addSelect('COUNT(co.id) as openCount')
             ->join('co.campaignSent', 'cs')
             ->where('cs.campaign = :campaign')
-            ->groupBy('co.campaignSent')
+            ->groupBy('cs.customer')
             ->setParameter('campaign', $campaign)
             ->getQuery()
             ->getResult();

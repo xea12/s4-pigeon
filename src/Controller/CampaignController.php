@@ -128,6 +128,7 @@ class CampaignController extends AbstractController
                 $campaignSent->setSentAt(new \DateTime());
                 $campaignSent->setStatus('Sent');
 
+
                 $entityManager->persist($campaignSent);
                 $entityManager->flush();
 
@@ -157,21 +158,46 @@ class CampaignController extends AbstractController
             }
         }
 
-        // Zapisz wszystkie zmiany w bazie danych
-        $entityManager->flush();
-
-        // Dodaj komunikaty flash
-        if ($successCount > 0) {
-            $this->addFlash('success', sprintf('Wysłano pomyślnie %d emaili.', $successCount));
+        // Po zakończeniu wysyłki, zaktualizuj status kampanii
+        if ($errorCount === 0 && $successCount > 0) {
+            $campaign->setStatus('Wysłana');
+        } elseif ($successCount === 0) {
+            $campaign->setStatus('Błąd wysyłki');
+        } else {
+            $campaign->setStatus('Wysłana częściowo');
         }
 
-        if ($errorCount > 0) {
-            foreach ($errorMessages as $message) {
-                $this->addFlash('error', $message);
+        // Dodaj informację o liczbie wysłanych emaili
+        $campaign->setDataWysylki(new \DateTime());
+
+        try {
+            $entityManager->flush();
+
+            // Dodaj odpowiednie komunikaty flash
+            if ($successCount > 0) {
+                $this->addFlash('success', sprintf('Wysłano pomyślnie %d emaili.', $successCount));
             }
+            if ($errorCount > 0) {
+                foreach ($errorMessages as $message) {
+                    $this->addFlash('error', $message);
+                }
+            }
+
+            $this->addFlash('success', sprintf(
+                'Kampania została zakończona. Status: %s. Wysłano: %d, Błędów: %d',
+                $campaign->getStatus(),
+                $successCount,
+                $errorCount
+            ));
+
+        } catch (\Exception $e) {
+            $this->logger->error('Błąd podczas aktualizacji statusu kampanii', [
+                'campaign_id' => $campaign->getId(),
+                'error' => $e->getMessage()
+            ]);
+            $this->addFlash('error', 'Wystąpił błąd podczas aktualizacji statusu kampanii.');
         }
 
-        $this->addFlash('success', 'Kampania została wysłana do ' . count($customers) . ' klientów.');
         return $this->redirectToRoute('campaign_list');
     }
 
@@ -415,19 +441,47 @@ class CampaignController extends AbstractController
     }
 
     #[Route('/campaign/{id}/stats', name: 'campaign_stats')]
-    public function campaignStats(Campaign $campaign, CampaignRepository $campaignRepository): Response
-    {
+    public function campaignStats(
+        int $id,
+        EntityManagerInterface $entityManager,
+        CampaignRepository $campaignRepository
+    ): Response {
+        $campaign = $entityManager->getRepository(Campaign::class)->find($id);
+
+        if (!$campaign) {
+            throw $this->createNotFoundException('Nie znaleziono kampanii o id ' . $id);
+        }
+
         $openRate = $campaignRepository->getOpenRateForCampaign($campaign);
+        $opens = $entityManager->createQueryBuilder()
+            ->select('co')
+            ->from('App\Entity\CampaignOpen', 'co')
+            ->join('co.campaignSent', 'cs')
+            ->where('cs.campaign = :campaign')
+            ->setParameter('campaign', $campaign)
+            ->orderBy('co.openedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
 
         return $this->render('campaign/stats.html.twig', [
             'campaign' => $campaign,
             'openRate' => $openRate,
+            'opens' => $opens
         ]);
     }
 
     #[Route('/campaign/{id}/open-stats', name: 'campaign_open_stats')]
-    public function campaignOpenStats(Campaign $campaign, CampaignOpenRepository $campaignOpenRepository): Response
-    {
+    public function campaignOpenStats(
+        int $id,
+        EntityManagerInterface $entityManager,
+        CampaignOpenRepository $campaignOpenRepository
+    ): Response {
+        $campaign = $entityManager->getRepository(Campaign::class)->find($id);
+
+        if (!$campaign) {
+            throw $this->createNotFoundException('Nie znaleziono kampanii o id ' . $id);
+        }
+
         $openStats = $campaignOpenRepository->getOpenStatistics($campaign);
         $uniqueOpens = count($openStats);
         $totalOpens = array_sum(array_column($openStats, 'openCount'));
@@ -438,5 +492,33 @@ class CampaignController extends AbstractController
             'uniqueOpens' => $uniqueOpens,
             'totalOpens' => $totalOpens,
         ]);
+    }
+    #[Route('/campaign/{id}/duplicate', name: 'campaign_duplicate')]
+    public function duplicateCampaign(
+        int $id,
+        EntityManagerInterface $entityManager
+    ): Response {
+        $originalCampaign = $entityManager->getRepository(Campaign::class)->find($id);
+
+        if (!$originalCampaign) {
+            throw $this->createNotFoundException('Nie znaleziono kampanii o id '.$id);
+        }
+
+        $newCampaign = new Campaign();
+        $newCampaign->setNazwa($originalCampaign->getNazwa() . ' (kopia)');
+        $newCampaign->setTemat($originalCampaign->getTemat());
+        $newCampaign->setNazwaNadawcy($originalCampaign->getNazwaNadawcy());
+        $newCampaign->setEmailNadawcy($originalCampaign->getEmailNadawcy());
+        $newCampaign->setDataUtworzenia(new \DateTime());
+        $newCampaign->setStatus('Szkic');
+        $newCampaign->setSegment($originalCampaign->getSegment());
+        $newCampaign->setHtmlTemplate($originalCampaign->getHtmlTemplate());
+
+        $entityManager->persist($newCampaign);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Kampania została skopiowana pomyślnie.');
+
+        return $this->redirectToRoute('campaign_edit', ['id' => $newCampaign->getId()]);
     }
 }

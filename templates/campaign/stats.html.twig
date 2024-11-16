@@ -3,23 +3,77 @@
 
 {% block title %}Statystyki otwarć kampanii{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .table td a:hover {
+            text-decoration: underline !important;
+        }
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
     <h1>Statystyki otwarć dla kampanii: {{ campaign.nazwa }}</h1>
 
-    <p>Liczba otwarć: {{ opens|length }}</p>
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Liczba otwarć</h5>
+                    <p class="card-text display-4">{{ opens|length }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Współczynnik otwarć</h5>
+                    <p class="card-text display-4">{{ openRate|number_format(2) }}%</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <table class="table">
+    <table class="table table-striped">
         <thead>
         <tr>
             <th>Email</th>
             <th>Data otwarcia</th>
+            <th>IP</th>
+            <th>User Agent</th>
+            <th>Akcje</th>
         </tr>
         </thead>
         <tbody>
         {% for open in opens %}
             <tr>
-                <td>{{ open.campaignSent.customer.email }}</td>
+                <td>
+                    <a href="{{ path('customer_details', {'id': open.campaignSent.customer.id}) }}"
+                       class="text-primary text-decoration-none">
+                        {{ open.campaignSent.customer.email }}
+                    </a>
+                </td>
                 <td>{{ open.openedAt|date('Y-m-d H:i:s') }}</td>
+                <td>{{ open.ipAddress }}</td>
+                <td>
+                    <small class="text-muted">
+                        {{ open.userAgent|length > 50 ? open.userAgent|slice(0, 50) ~ '...' : open.userAgent }}
+                    </small>
+                </td>
+                <td>
+                    <a href="{{ path('customer_details', {'id': open.campaignSent.customer.id}) }}"
+                       class="btn btn-sm btn-primary">
+                        <i class="fas fa-user"></i> Szczegóły klienta
+                    </a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5" class="text-center">Brak otwarć dla tej kampanii</td>
             </tr>
         {% endfor %}
         </tbody>
